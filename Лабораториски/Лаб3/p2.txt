@@ -1,0 +1,106 @@
+Дадено ни е податочно множество за соларен одблесок. Сите атрибути кои ги содржи се од категориски тип (последната колона е класен атрибут). Ваша задача е да истренирате наивен баесов класификатор кој ќе предвидува класи на соларен одблесок користејќи ги првите 75% од даденото податочно множество. Треба да ја пресметате точноста која ја добивате над останатите 25% од податочното множество и потоа да направите предвидувања на записи кои ги примате на влез.
+
+Во почетниот код имате дадено податочно множество. На влез се прима еден запис за кој треба да се направи предвидување на класата. На излез треба да се испечати точноста на моделот, класата на предвидување како и веројатностите за припадност во класите.
+
+
+==========
+
+
+Во оваа задача треба да направите класификација со колекција од 3 класификатори. Тренирачкото множество поделете го на 3 дела така што првиот дел ќе ги содржи првите 3 карактеристики, вториот дел ќе ги содржи вторите 3 карактеристики и третиот дел ќе ги содржи останатите 4 карактеристики. Потоа тренирајте 3 класификатори на следниот начин: првиот класификатор со првиот дел од тренирачкото множество, вториот класификатор со вториот дел од тренирачкото множество и третиот класификатор со третиот дел од тренирачкото множество. Пресметајте заедничка точност со тестирачкото множество. Одреден примерок се смета за точно класифициран ако барем 2 од 3те класификатори точно ја предвидат класата. За примерокот кој се чита од стандарден влез испечатете ја предвидената класа само ако барем 2 од класификаторите ја предвидат истата класа. Во спротивно испечатете „klasata ne moze da bide odredena“.
+
+For example:
+Test 	Input 	Result
+
+TC1
+
+	
+
+H R X 1 2 1 1 2 1 1
+
+	
+
+0.846820809248555
+0
+
+
+from submission_script import *
+from dataset_script import dataset
+import os
+from sklearn.naive_bayes import CategoricalNB
+from sklearn.preprocessing import OrdinalEncoder
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
+if __name__ == '__main__':
+    encoder = OrdinalEncoder()
+    encoder.fit([row[:-1] for row in dataset])
+
+    split_index = int(0.75 * len(dataset))
+    
+    train_set = dataset[:split_index]
+    test_set = dataset[split_index:]
+    
+    subset1 = []
+    subset2 = []
+    subset3 = []
+    subset4 = []
+
+    for row in train_set:
+        subset1.append(row[:3])
+        subset2.append(row[3:6])
+        subset3.append(row[6:10])
+        subset4.append(row[10:])
+        
+    new_entry = [str(var) for var in input().split(' ')]
+
+    trainX1 = [row[:-1] for row in subset1]
+    trainY1 = [row[-1] for row in subset1]
+    trainX2 = [row[:-1] for row in subset2]
+    trainY2 = [row[-1] for row in subset2]
+    trainX3 = [row[:-1] for row in subset3]
+    trainY3 = [row[-1] for row in subset3]
+    testX = [row[:-1] for row in subset4]
+    testY = [row[-1] for row in subset4]
+ 
+
+    trainX1 = encoder.transform(trainX1)
+    trainX2 = encoder.transform(trainX2)
+    trainX3 = encoder.transform(trainX3)
+    testX = encoder.transform(testX)
+
+    classifier1 = CategoricalNB()
+    classifier1.fit(trainX1, trainY1)
+    classifier2 = CategoricalNB()
+    classifier2.fit(trainX2, trainY2)
+    classifier3 = CategoricalNB()
+    classifier3.fit(trainX3, trainY3)
+
+    accurate_count = 0
+    for i in range(len(testY)):
+        #za povekje predicted classes, proveruvame KOLKU predikcii se isti so testirackoto mn. i ako site predikcii se ednakvi, da se isprintaat.
+        row = testX[i]
+        p1 = classifier1.predict([testX[i]])[0] 
+        p2 = classifier2.predict([testX[i]])[0] 
+        p3 = classifier3.predict([testX[i]])[0] 
+        gt_class = testY[i]
+
+        vote = 0
+        if p1 == gt_class:
+            vote += 1
+        if p2 == gt_class:
+            vote += 1
+        if p3 == gt_class:
+            vote += 1
+            
+        if vote>=2:
+            accurate_count += 1
+
+    # printing accuracy
+    accuracy = accurate_count / len(test_set)
+    
+    print(accuracy)
+    
+    if print(int(classifier.predict([new_entry])[0])) == print(int(classifier.predict([new_entry])[0])):
+        print("Predvidena klasa:", int(classifier.predict([new_entry])[0]))
+    else:
+        print("Klasata ne moze da bide odredena")
+

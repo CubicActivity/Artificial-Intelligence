@@ -1,0 +1,128 @@
+Дадено ни е податочно множество за третмани со криотерапија. Сите атрибути кои ги содржи се од непрекинат тип и може да се претпостави дека имаат непрекината распределба. Ваша задача е да истренирате наивен баесов класификатор кој ќе предвидува дали терапијата е успешна или не (1 и 0) користејќи ги првите 85% од даденото податочно множество. Треба да ја пресметате точноста која ја добивате над останатите 15% од податочното множество и потоа да направите предвидувања на записи кои ги примате на влез. 
+
+Во почетниот код имате дадено податочно множество. На влез се прима еден запис за кој треба да се направи предвидување на класата. На излез треба да се испечати точноста на моделот, класата на предвидување како и веројатностите за припадност во класите.
+
+
+===========
+
+
+Во оваа верзија направете втора верзија од тренирачкото множество во која ќе ги додадете погрешно класифицираните примероци од тестирачкото множество. Овие примероци отстранете ги од тестирачкото множество. Потоа направете и втор класификатор. Вториот класификатор тренирајте го со втората верзија од тренирачкото множество, а точноста пресметајте ја со тестирачкото множество. На стандарден излез испечатете ја неговата точност. Потоа испечатете ја предвидената класа на следниот начин: ако со двата класификатори се добива истата класа да се испечати класата на стандарден излез, во спротивно да се испечати „Klasata ne moze da bide odredena“.
+
+For example:
+Test 	Input 	Result
+
+TC1
+
+	
+
+1 20 4 3 1 6
+
+	
+
+Tochnost 1: 0.9285714285714286
+Tochnost 2: 1.0
+Predvidena klasa: 1
+
+from dataset_script import dataset
+import os
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn.naive_bayes import GaussianNB
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+from submission_script import *
+
+if __name__ == '__main__':
+    dataset = [[float(x) for x in row] for row in dataset]
+
+    split_index = int(0.85 * len(dataset))
+    trainSet = dataset[:split_index]
+    testSet = dataset[split_index:]
+
+    trainX, trainY = [row[:-1] for row in trainSet] , [row[-1] for row in trainSet]
+    testX, testY = [row[:-1] for row in testSet] , [row[-1] for row in testSet]
+
+    classifier = GaussianNB()
+    classifier.fit(trainX, trainY)
+
+    count = 0
+    
+    trainSet2=[]
+    trainSet2.extend(trainSet)
+    testSet2 = []
+    testSet2.extend(testSet)
+    
+    for i in range(len(testX)):
+        predicted_class = classifier.predict([testX[i]])[0]
+        gt_class = testY[i]
+
+        if predicted_class == gt_class:
+            count+=1
+        else:
+            trainSet2.append([*testX[i], testY[i]])
+            testSet2.remove([*testX[i], testY[i]])
+
+    print("Tochnost 1:", (count / len(testX)))
+
+    new_entry = [float(var) for var in input().split(' ')]
+
+    print(int(classifier.predict([new_entry])[0]))
+    print(classifier.predict_proba([new_entry]))
+
+    # submit na trenirachkoto mnozestvo
+    submit_train_data(trainX, trainY)
+    # submit na testirachkoto mnozestvo
+    submit_test_data(testX, testY)
+    # submit na klasifikatorot
+    submit_classifier(classifier)
+
+    trainX2, trainY2 = [row[:-1] for row in trainSet2] , [row[-1] for row in trainSet2]
+    testX2, testY2 = [row[:-1] for row in testSet2] , [row[-1] for row in testSet2]
+    
+
+    classifier2 = GaussianNB()
+    classifier2.fit(trainX2, trainY2)
+    count2 = 0
+    
+    for i in range(len(testX2)):
+        predicted_class = classifier2.predict([testX2[i]])[0]
+        gt_class = testY2[i]
+
+        if predicted_class == gt_class:
+            count2+=1
+
+    print("Tochnost 2:", (count2 / len(testX2)))
+    
+    # submit na trenirachkoto mnozestvo
+    submit_train_data(trainX2, trainY2)
+    # submit na testirachkoto mnozestvo
+    submit_test_data(testX2, testY2)
+    # submit na klasifikatorot
+    submit_classifier(classifier2)
+    
+    
+    if print(int(classifier.predict([new_entry])[0])) == print(int(classifier.predict([new_entry])[0])):
+        print("Predvidena klasa:", int(classifier.predict([new_entry])[0]))
+    else:
+        print("Klasata ne moze da bide odredena")
+
+    
+    
+    
+    
+    
+    # Na kraj potrebno e da napravite submit na podatochnoto mnozestvo,
+    # klasifikatorot i encoderot so povik na slednite funkcii
+    
+    # submit na trenirachkoto mnozestvo
+    # submit_train_data(train_X, train_Y)
+    
+    # submit na vtoroto trenirachko mnozestvo
+    # submit_second_train_data(train_x2, train_y2)
+    
+    # submit na testirachkoto mnozestvo
+    # submit_test_data(test_X, test_Y)
+    
+    # submit na klasifikatorot
+    # submit_classifier(classifier)
+        
+    # submit na vtoriot klasifikator
+    # submit_second_classifier(classifier2)
