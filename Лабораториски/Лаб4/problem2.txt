@@ -1,0 +1,86 @@
+Дадено ни е податочно множество за карактеристики на риби. Сите атрибути кои ги содржи се од непрекинат тип. Ваша задача е да истренирате класификатор - колекција од дрва на одлука кој ќе предвидува класи на тип на риби користејќи ги првите 85% од даденото податочно множество. Треба да ја пресметате точноста која ја добивате над останатите 15% од податочното множество. Притоа, се користи дел од множеството во кој е отстранета колоната col_index.
+
+Во почетниот код имате дадено податочно множество. На влез се прима индекс на колоната која треба да се отстрани col_index. Дополнително се вчитува бројот на дрва на одлука кои ќе се користат и вредност за критериумот за избор на најдобар атрибут. На крај, се вчитува нов запис кој треба да се класифицира со тренираниот класификатор.
+
+На излез треба да се испечати точност на класификаторот, предвидената класа за новиот запис и веројатностите за припадност во класите.
+
+Напомена: бидејќи вредностите се од непрекинат тип, нема потреба да ги претворите во целобројни вредности.
+
+За да ги добиете истите резултати како и во тест примерите, при креирање на класификаторот поставете random_state=0.
+
+For example:
+Test 	Input 	Result
+
+TC1
+
+	
+
+1
+10
+entropy
+10 21 32 50 40 10
+
+	
+
+Accuracy: 0.7916666666666666
+Bream
+[0.6 0.  0.2 0.  0.1 0.1 0. ]
+
+
+
+import os
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+from submission_script import *
+from dataset_script import dataset
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+if __name__ == '__main__':
+    # Read input values
+    col_index = int(input())
+    n_estimators = int(input())
+    criterion = input().strip()
+    new_record = list(map(float, input().split()))
+    
+    # Prepare dataset
+    X = []
+    Y = []
+    for row in dataset:
+        # Remove the specified column
+        features = [val for i, val in enumerate(row[:-1]) if i != col_index]
+        X.append(features)
+        Y.append(row[-1])
+    
+    # Split dataset (first 85% for training)
+    split_idx = int(len(dataset) * 0.85)
+    train_X = X[:split_idx]
+    train_Y = Y[:split_idx]
+    test_X = X[split_idx:]
+    test_Y = Y[split_idx:]
+    
+    # Train Random Forest classifier
+    classifier = RandomForestClassifier(
+        n_estimators=n_estimators,
+        criterion=criterion,
+        random_state=0
+    )
+    classifier.fit(train_X, train_Y)
+    
+    # Calculate accuracy
+    predictions = classifier.predict(test_X)
+    accuracy = accuracy_score(test_Y, predictions)
+    
+    # Predict new record (remove the same column)
+    new_features = [val for i, val in enumerate(new_record) if i != col_index]
+    predicted_class = classifier.predict([new_features])[0]
+    probabilities = classifier.predict_proba([new_features])[0]
+    
+    # Print results
+    print(f"Accuracy: {accuracy}")
+    print(predicted_class)
+    print(probabilities)
+    
+    # Submit the required components
+    submit_train_data(train_X, train_Y)
+    submit_test_data(test_X, test_Y)
+    submit_classifier(classifier)
