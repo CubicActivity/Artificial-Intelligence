@@ -1,1 +1,1 @@
-# Вештачка Интелигенција (F23L2S030) - 2024/25 ФИНКИ
+# Exam Exercises and theory for the subject Artificial Intelligence (F23L2S030) - FINKI
