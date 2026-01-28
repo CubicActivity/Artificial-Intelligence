@@ -1,1 +1,1 @@
-# Exam prep materials for the subject AI
+# Artificial Intelligence
