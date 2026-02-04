@@ -1,1 +1,1 @@
-### Artificial Intelligence (F23L2S030)
+### Artificial intelligence (F23L2S030)
